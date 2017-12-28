@@ -2,6 +2,13 @@ if [ -f "${HOME}/.bashrc" ] ; then
   source "${HOME}/.bashrc"
 fi
 
+#git gc;
+
+function clean_branches_fn(){
+  git fetch -p;
+  gb | grep gone | cut -d \  -f 3 | xargs -n 1 git branch -D 2> /dev/null;
+}
+
 function pull_fn(){
   if [ "$1" = "m" ]; then
     $(stopsublime);
@@ -16,7 +23,7 @@ function pull_fn(){
   else
     git pull;
   fi fi
-  git fetch -p;
+  $(clean_branches_fn)
 }
 
 function pull_other_fn(){
@@ -25,6 +32,7 @@ function pull_other_fn(){
   else
     git fetch origin master:master;
   fi
+  $(clean_branches_fn)
 }
 
 function checkout_fn(){
@@ -43,11 +51,11 @@ function checkout_fn(){
 function diff_fn(){
   re='^[0-9]+$'
   if [[ $1 =~ $re ]]; then
-    git diff --color HEAD~$* | less -r;
+    git diff --color --ignore-space-change HEAD~$* | less -r;
   else if [ "$1" = "c" ]; then
-    git diff --cached --color $2 | less -r;
+    git diff --cached --color --ignore-space-change $2 | less -r;
   else
-    git diff --color $* | less -r;
+    git diff --color --ignore-space-change $* | less -r;
   fi fi
 }
 
@@ -93,15 +101,36 @@ function branch_fn(){
   git branch --sort=-committerdate -v $*;
 }
 
-function log_fn(){
+function _log(){
+  re='\.\.'
   base="master";
-  branch="";
+  branch="..@";
+  fancy="--graph --oneline";
+  fancyIndicator=$1;
+  shift 1;
+
   if [ "$1" = "prod" ]; then
     base="production11";
-  else if (($#)); then
+    shift 1;
+  else if [[ $1 =~ $re ]]; then
+    base="";
     branch=$1;
+    shift ;
   fi fi
-  git log $base..$branch;
+
+  if [ "$fancyIndicator" -eq "1" ]; then
+    git log $* $fancy $base$branch;
+  else
+    git log $* $base$branch;
+  fi
+}
+
+function log_fn(){
+  _log 0 $*;
+}
+
+function log_fancy_fn() {
+  _log 1 $*;
 }
 
 function revert_fn(){
@@ -224,6 +253,14 @@ function merge_fn(){
   git merge $* --no-edit;
 }
 
+function add_fn(){
+  if (($#)); then
+    git add $*;
+  else
+    git add .;
+  fi
+}
+
 function switch_fn(){
   echo "$1" | sed 's/\\/\//g';
 }
@@ -239,18 +276,20 @@ func() {
 
 alias done=done_fn
 alias ga=amend_fn
+alias gad=add_fn
 alias gb=branch_fn
+alias gbc=clean_branches_fn
 alias gbu='git branch --unset-upstream'
 alias gci=commit_fn
-alias gcl='git clean -f;'
+alias gcl='git clean -fd;'
 alias gco=checkout_fn
 alias gcp=cherry_fn
 alias gd=diff_fn
-alias gl=log_fn
+alias gl=log_fancy_fn
 alias gls='git ls-files'
 alias gpa=patch_fn
 alias gpl=pull_fn
-alias gpm=pull_other_fn
+alias gpo=pull_other_fn
 alias gps=push_fn
 alias grb=rebase_fn
 alias gra='git rebase --abort'
@@ -270,6 +309,7 @@ alias prod='gco prod'
 
 alias web='cd /c/Development/Storm/code/client/DeltekNavigator/Web/'
 alias storm='cd /c/Development/Storm/'
+alias stealformat='cd /c/Users/luiscruz/.vscode/extensions/steal-format/'
 alias src='cd /c/Development/Storm/code/client/DeltekNavigator/Web/src/'
 alias startsublime='C:/Program\ Files/Sublime\ Text\ 3/sublime_text.exe'
 alias start=start_fn
