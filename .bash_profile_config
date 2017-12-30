@@ -1,0 +1,13 @@
+#1 is true, 0 is false
+
+#defaults, uncomment and before changing
+#echoOn=1; #echo commands to stdout prepended with a '> ' i.e. "> git pull"
+#deleteLocal=1; #prune local branches if removed from remote
+#ignoreSpaceChanges=1; #diff ignores space changes
+#commitAll=1; #use -a for commit commands
+#logCompareMaster=0; #gl command assumes you want to compare against master
+#branchPrefix=0; #remote branches are prefixed with dev_'name' or prod_'name'
+#forcePush=0; #use -f for push commands
+
+name="luis"; #used in push commands if branchPrefix=1;
+prod="production11"; #variable that stores name of production branch

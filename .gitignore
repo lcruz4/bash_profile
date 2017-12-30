@@ -1,5 +1,6 @@
 # ignore everything
 *
-# except for .gitignore and .bash_profile
+# except for .gitignore .bash_profile files
 !.gitignore
 !.bash_profile
+!.bash_profile_config

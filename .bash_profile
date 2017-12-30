@@ -2,273 +2,281 @@ if [ -f "${HOME}/.bashrc" ] ; then
   source "${HOME}/.bashrc"
 fi
 
-#git gc;
+echoOn=1;
+name="";
+prod="production11";
+deleteLocal=1;
+ignoreSpaceChanges=1;
+commitAll=1;
+branchPrefix=0;
+logCompareMaster=0;
+forcePush=0;
 
+if [ -f "${HOME}/.bash_profile_config" ]; then
+  source "${HOME}/.bash_profile_config";
+fi
+
+git gc --auto;
+
+#helper to check if echoOn is set
+function print(){
+  if (($echoOn)); then
+    echo "> $1";
+  fi
+}
+
+#helper for one liner aliases
+function oneLine(){
+  print "$*";
+  $*;
+}
+
+#prune remote and local branches
 function clean_branches_fn(){
+  print "git fetch -p";
   git fetch -p;
-  gb | grep gone | cut -d \  -f 3 | xargs -n 1 git branch -D 2> /dev/null;
+  if (($deleteLocal)); then
+    print "delete old local branches";
+    git branch | grep gone | cut -d \  -f 3 | xargs -n 1 git branch -D 2> /dev/null;
+  fi
 }
 
+#pull
 function pull_fn(){
-  if [ "$1" = "m" ]; then
-    $(stopsublime);
-    git checkout master;
-    git pull;
-    git checkout -;
-    git rebase master;
-    $(startsublime) &
-
-  else if [ "$1" = "om" ]; then
-    git pull origin master;
-  else
-    git pull;
-  fi fi
-  $(clean_branches_fn)
+  print "git pull $*";
+  git pull $*;
+  clean_branches_fn;
 }
 
+#pull a branch while not on that branch
 function pull_other_fn(){
   if (($#)); then
+    print "git fetch origin $1:$1";
     git fetch origin $1:$1;
   else
+    print "git fetch origin master:master";
     git fetch origin master:master;
   fi
-  $(clean_branches_fn)
+  clean_branches_fn;
 }
 
+#checkout
 function checkout_fn(){
-  re='^[0-9]+$'
-  if [[ $1 =~ $re ]]; then
-    git checkout @{-$1};
-  else if [ "$1" = "u" ]; then
-    git stash;
-    git checkout $2;
-    git stash pop;
-  else
-    git checkout $*;
-  fi fi
+  print "git checkout $*";
+  git checkout $*;
 }
 
+#diff, options available c for cached n for name only, n number for @~n
 function diff_fn(){
   re='^[0-9]+$'
+  ignoreSpace="--ignore-space-change ";
+  base="";
+  cached="";
+  nameOnly="";
+  redirect=1;
+  if ((!$ignoreSpaceChanges)); then
+    ignoreSpace="";
+  fi
   if [[ $1 =~ $re ]]; then
-    git diff --color --ignore-space-change HEAD~$* | less -r;
-  else if [ "$1" = "c" ]; then
-    git diff --cached --color --ignore-space-change $2 | less -r;
+    base="@~$1 ";
+    shift 1;
+  fi
+  if [ "$1" = "c" ]; then
+    shift 1;
+    cached="--cached ";
+  fi
+  if [ "$1" = "n" ]; then
+    shift 1;
+    nameOnly="--name-only ";
+    redirect=0;
+  fi
+
+  if (($redirect)); then
+    print "git diff --color $cached$nameOnly$ignoreSpace$base$* | less -r";
+    git diff --color $cached$nameOnly$ignoreSpace$base$* | less -r;
   else
-    git diff --color --ignore-space-change $* | less -r;
-  fi fi
+    print "git diff --color $cached$nameOnly$ignoreSpace$base$*";
+    git diff --color $cached$nameOnly$ignoreSpace$base$*;
+  fi
 }
 
+#commit give message as a string
 function commit_fn(){
-  git commit -am "$1";
+  all="-a ";
+  if ((!$commitAll)); then
+    all="";
+  fi
+  print "git commit $all-m \"$1\"";
+  git commit $all-m "$1";
 }
 
+#return to master (or production) and delete branch you were on. Also does a pull after
 function done_fn(){
   base="master";
   if [ "$1" = "prod" ]; then
-    base="production11";
+    base="$prod";
   fi
+  print "git checkout $base";
   git checkout $base;
+  print "git branch -D @{-1}";
   git branch -D @{-1};
-  $(gpl);
+  gpl;
 }
 
+#push
 function push_fn(){
-  branch=$(mybranch)
-  prefix=":dev_luis-"
-  del=$1
+  branch=$(mybranch);
+  prefix=":dev_$name-";
+  forcePushFlag="";
+  base=$branch;
+  re=":";
 
-  if [ "$1" = "n" ]; then
-    prefix=":"
-    del=$2
-  else if [ "$1" = "prod" ]; then
-    prefix=":prod_luis-"
-    del=$2
-  fi fi
-
-  git push -fu origin $branch$prefix$branch;
-
-  if [ "$del" = "d" ]; then
-    $(done);
+  if (($branchPrefix)); then
+    if [ "$1" = "prod" ]; then
+      prefix=":prod_$name-";
+      shift 1;
+    fi
+    base=$branch$prefix$branch
   fi
+  if (($forcePush)); then
+    forcePushFlag="-f ";
+  fi
+  if [[ $1 =~ $re ]]; then
+    base=$1;
+    shift 1;
+  fi
+  print "git push $forcePushFlag-u $* origin $base";
+  git push $forcePushFlag-u $* origin $base;
 }
 
+#stash
 function stash_fn(){
+  print "git stash $*";
   git stash $*;
 }
 
+#branch
 function branch_fn(){
+  print "git branch --sort=-committerdate -v $*";
   git branch --sort=-committerdate -v $*;
 }
 
-function _log(){
-  re='\.\.'
-  base="master";
-  branch="..@";
+#log
+function log_fancy_fn() {
+  re='\.\.';
+  base="master..@";
   fancy="--graph --oneline";
-  fancyIndicator=$1;
-  shift 1;
+
+  if ((!$logCompareMaster)); then
+    base="";
+  fi
 
   if [ "$1" = "prod" ]; then
-    base="production11";
+    base="$prod..@";
+    shift 1;
+  else if [ "$1" = "master" ]; then
+    base="master..@";
     shift 1;
   else if [[ $1 =~ $re ]]; then
     base="";
-    branch=$1;
-    shift ;
-  fi fi
+  fi fi fi
 
-  if [ "$fancyIndicator" -eq "1" ]; then
-    git log $* $fancy $base$branch;
-  else
-    git log $* $base$branch;
-  fi
+  print "git log $fancy $* $base";
+  git log $fancy $* $base;
 }
 
-function log_fn(){
-  _log 0 $*;
-}
-
-function log_fancy_fn() {
-  _log 1 $*;
-}
-
+#reset
 function revert_fn(){
-  git reset HEAD~$1;
+  re='^[0-9]+$';
+  hard="";
+  if [ "$1" = "h" ]; then
+    hard="--hard ";
+    shift 1;
+  fi
+
+  if [[ $1 =~ $re ]]; then
+    num=$1;
+    shift 1;
+    print "git reset $hard$* @~$num";
+    git reset $hard$* @~$num;
+  else
+    print "git reset $hard$*";
+    git reset $hard$*;
+  fi
 }
 
+#reset hard
 function fpull_fn(){
-  git reset --hard $*;
+  revert_fn h $*;
 }
 
+#commit with amend flag if no message is given previous commit on head is used
 function amend_fn(){
+  all="-a ";
+  if ((!$commitAll)); then
+    all="";
+  fi
   if (($#)); then
-    git commit --amend -am "$1";
+    print "git commit --amend $all-m \"$1\""
+    git commit --amend $all-m "$1";
   else
-    git commit --amend -aC @;
+    print "git commit --amend $all-C @";
+    git commit --amend $all-C @;
   fi
 }
 
-function patch_fn(){
-  git add -p;
-  if [ "$1" = "a" ]; then
-    git commit --amend -m "$2";
-  else
-    git commit -m "$1"
-  fi
-}
-
+#cherry-pick
 function cherry_fn(){
-  git cherry-pick $1;
+  print "git cherry-pick $*";
+  git cherry-pick $*;
 }
 
+#rebase
 function rebase_fn(){
   if [ "$1" = "prod" ]; then
-    git rebase production11;
+    print "git rebase $prod";
+    git rebase $prod;
   else if (($#)); then
-    git rebase $1;
+    print "git rebase $*";
+    git rebase $*;
   else
+    print "git rebase master";
     git rebase master;
   fi fi
 }
 
-
+# create a branch off master (or production) regardless of the branch you're on
 function start_fn(){
-  sha='^[0-9a-f]+$';
-  stash=0;
-  cherry="";
-  commitMessage="";
-  push="";
   base="master";
   if [ "$1" = "prod" ]; then
-    base="production11";
-    if [ "$2" = "u" ]; then
-      stash=1;
-      git stash;
-      if [[ $3 =~ $sha ]]; then
-        cherry=$3;
-        branchName=$4;
-        commitMessage=$5;
-        push=$6;
-      else
-        branchName=$3;
-        commitMessage=$4;
-        push=$5;
-      fi
-    else if [[ $2 =~ $sha ]]; then
-      cherry=$2;
-      branchName=$3;
-      commitMessage=$4;
-      push=$5;
-    else
-      branchName=$2;
-      commitMessage=$3;
-      push=$4;
-    fi fi
-  else if [ "$1" = "u" ]; then
-    stash=1;
-    git stash;
-    if [[ $2 =~ $sha ]]; then
-      cherry=$2;
-      branchName=$3;
-      commitMessage=$4;
-      push=$5;
-    else
-      branchName=$2;
-      commitMessage=$3;
-      push=$4;
-    fi
-  else if [[ $1 =~ $sha ]]; then
-    cherry=$1;
-    branchName=$2;
-    commitMessage=$3;
-    push=$4;
-  else
-    branchName=$1;
-    commitMessage=$2;
-    push=$3;
-  fi fi fi
-
-  git branch $branchName $base;
-  git checkout $branchName;
-
-  if [ "$cherry" != "" ]; then
-    git cherry-pick $cherry;
+    base="$prod";
+    shift 1;
   fi
 
-  if (($stash)); then
-    git stash pop;
-  fi
-
-  if [ "$commitMessage" != "" ]; then
-    git commit -am "$commitMessage";
-  fi
-
-  if [ "$push" = "p" ]; then
-    gps;
-  fi
+  print "git branch $1 $base";
+  git branch $1 $base;
+  print "git checkout $1";
+  git checkout $1;
 }
 
+#merge
 function merge_fn(){
+  print "git merge $* --no-edit";
   git merge $* --no-edit;
 }
 
+#add git add . by default
 function add_fn(){
   if (($#)); then
+    print "git add $*";
     git add $*;
   else
+    print "git add .";
     git add .;
   fi
 }
 
-function switch_fn(){
-  echo "$1" | sed 's/\\/\//g';
-}
-
-function test_fn(){
-  npm run test -- --tag $*;
-}
-
+#completion func for branches. Only uses local branches, excludes current branch
 func() {
   local cur=${COMP_WORDS[COMP_CWORD]}
   COMPREPLY=( $(compgen -W "$(git branch | grep -v \*)" -- $cur) )
@@ -279,50 +287,40 @@ alias ga=amend_fn
 alias gad=add_fn
 alias gb=branch_fn
 alias gbc=clean_branches_fn
-alias gbu='git branch --unset-upstream'
+alias gbu='oneLine git branch --unset-upstream'
 alias gci=commit_fn
-alias gcl='git clean -fd;'
+alias gcl='oneLine git clean -fd;'
 alias gco=checkout_fn
 alias gcp=cherry_fn
+alias gca='oneLine git cherry-pick --abort'
+alias gcc='oneLine git cherry-pick --continue'
 alias gd=diff_fn
 alias gl=log_fancy_fn
-alias gls='git ls-files'
-alias gpa=patch_fn
 alias gpl=pull_fn
 alias gpo=pull_other_fn
 alias gps=push_fn
 alias grb=rebase_fn
-alias gra='git rebase --abort'
-alias grc='git rebase --continue'
+alias gra='oneLine git rebase --abort'
+alias grc='oneLine git rebase --continue'
 alias grh=fpull_fn
-alias grp='git reset --patch'
 alias grs=revert_fn
 alias gsh=stash_fn
-alias gst='git status --short'
+alias gst='oneLine git status --short'
 alias gm=merge_fn
-alias gma='git merge --abort'
-alias gmc='git merge --continue'
-alias gmt='git mergetool'
-alias master='gco master'
+alias gma='oneLine git merge --abort'
+alias gmc='oneLine git merge --continue'
+alias master='oneLine git checkout master'
 alias mybranch='git rev-parse --abbrev-ref HEAD;'
-alias prod='gco prod'
+alias prod='oneLine git checkout $prod'
 
 alias web='cd /c/Development/Storm/code/client/DeltekNavigator/Web/'
 alias storm='cd /c/Development/Storm/'
-alias stealformat='cd /c/Users/luiscruz/.vscode/extensions/steal-format/'
 alias src='cd /c/Development/Storm/code/client/DeltekNavigator/Web/src/'
-alias startsublime='C:/Program\ Files/Sublime\ Text\ 3/sublime_text.exe'
 alias start=start_fn
-alias stopsublime='TASKKILL -IM sublime_text.exe > /dev/null'
-alias sw=switch_fn
-alias qe='cd /c/Development/QEAutomation/Products/DeltekPS'
 alias edit='vim ~/.bash_profile'
 alias bp='. ~/.bash_profile'
-alias test=test_fn
-
-alias H='HEAD'
 
 complete -F func gco
 complete -F func gb -D
-complete -F func gpm
+complete -F func gpo
 complete -F func gl
