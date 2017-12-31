@@ -16,7 +16,9 @@ if [ -f "${HOME}/.bash_profile_config" ]; then
   source "${HOME}/.bash_profile_config";
 fi
 
-git gc --auto;
+if [ -d .git ]; then
+  git gc --auto;
+fi
 
 #helper to check if echoOn is set
 function print(){
