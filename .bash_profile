@@ -39,7 +39,7 @@ function clean_branches_fn(){
   git fetch -p;
   if (($deleteLocal)); then
     print "delete old local branches";
-    git branch | grep gone | cut -d \  -f 3 | xargs -n 1 git branch -D 2> /dev/null;
+    git branch -v | grep gone | cut -d \  -f 3 | xargs -n 1 git branch -D 2> /dev/null;
   fi
 }
 
@@ -284,6 +284,14 @@ func() {
   COMPREPLY=( $(compgen -W "$(git branch | grep -v \*)" -- $cur) )
 }
 
+function edit_fn(){
+  if command -v code > /dev/null; then
+    code $1;
+  else
+    "${EDITOR:-vim}" $1;
+  fi
+}
+
 alias done=done_fn
 alias ga=amend_fn
 alias gad=add_fn
@@ -319,7 +327,8 @@ alias web='cd /c/Development/Storm/code/client/DeltekNavigator/Web/'
 alias storm='cd /c/Development/Storm/'
 alias src='cd /c/Development/Storm/code/client/DeltekNavigator/Web/src/'
 alias start=start_fn
-alias edit='vim ~/.bash_profile'
+alias edit='edit_fn ~/.bash_profile'
+alias config='edit_fn ~/.bash_profile_config'
 alias bp='. ~/.bash_profile'
 
 complete -F func gco
