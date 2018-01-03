@@ -122,7 +122,7 @@ function done_fn(){
   git checkout $base;
   print "git branch -D @{-1}";
   git branch -D @{-1};
-  gpl;
+  pull_fn;
 }
 
 #push
@@ -167,8 +167,8 @@ function branch_fn(){
 function log_fancy_fn() {
   re='\.\.';
   base="master..@";
-  fancy="--graph --oneline";
-
+  i=$((COLUMNS-53));
+  fancyArgs=(--graph --date=relative --pretty=format:"%<|(20)%C(yellow)%h %C(bold)%Cgreen%<(15,trunc)%an %Creset%C(magenta)%<(15,trunc)%ad %Creset%<($i,trunc)%s");
   if ((!$logCompareMaster)); then
     base="";
   fi
@@ -183,8 +183,8 @@ function log_fancy_fn() {
     base="";
   fi fi fi
 
-  print "git log $fancy $* $base";
-  git log $fancy $* $base;
+  print "git log --graph --date=relative --pretty=format:{tedious format string} $* $base";
+  git log "${fancyArgs[@]}" $* $base;
 }
 
 #reset
