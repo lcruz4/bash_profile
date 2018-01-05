@@ -292,7 +292,6 @@ function edit_fn(){
   fi
 }
 
-alias done=done_fn
 alias ga=amend_fn
 alias gad=add_fn
 alias gb=branch_fn
@@ -323,6 +322,7 @@ alias master='oneLine git checkout master'
 alias mybranch='git rev-parse --abbrev-ref HEAD;'
 alias prod='oneLine git checkout $prod'
 
+alias finish=done_fn
 alias web='cd /c/Development/Storm/code/client/DeltekNavigator/Web/'
 alias storm='cd /c/Development/Storm/'
 alias src='cd /c/Development/Storm/code/client/DeltekNavigator/Web/src/'
