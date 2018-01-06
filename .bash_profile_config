@@ -8,6 +8,8 @@
 #logCompareMaster=0; #gl command assumes you want to compare against master
 #branchPrefix=0; #remote branches are prefixed with dev_'name' or prod_'name'
 #forcePush=0; #use -f for push commands
+#maxSearchDepth=10; #how many directories in should go search before giving up
 
 name="luis"; #used in push commands if branchPrefix=1;
 prod="production11"; #variable that stores name of production branch
+devDir="/c/dev"; #dev directory for used for go command (don't add / to end)

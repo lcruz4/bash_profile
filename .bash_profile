@@ -11,6 +11,8 @@ commitAll=1;
 branchPrefix=0;
 logCompareMaster=0;
 forcePush=0;
+devDir="/c/dev";
+maxSearchDepth=10;
 
 if [ -f "${HOME}/.bash_profile_config" ]; then
   source "${HOME}/.bash_profile_config";
