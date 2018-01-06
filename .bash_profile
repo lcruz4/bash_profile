@@ -169,7 +169,7 @@ function gl() {
   re='\.\.';
   base="master..@";
   i=$((COLUMNS-53));
-  fancyArgs=(--graph --date=relative --pretty=format:"%<|(20)%C(yellow)%h %C(bold)%Cgreen%<(15,trunc)%an %Creset%C(magenta)%<(15,trunc)%ad %Creset%<($i,trunc)%s");
+  fancyArgs=(--graph --date=relative --pretty=format:"%<|(20,trunc)%C(yellow)%h %C(bold)%Cgreen%<(15,trunc)%an %Creset%C(magenta)%<(15,trunc)%ad %Creset%<($i,trunc)%s");
   if ((!$logCompareMaster)); then
     base="";
   fi
