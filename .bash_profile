@@ -314,7 +314,7 @@ function goto_fn(){
     if [ $i -gt $maxSearchDepth ]; then
       echo "Could not find directory $1 within max search depth $maxSearchDepth."
     else
-      go $(($i+1)) $*;
+      goto_fn $(($i+1)) $*;
     fi
   else
     cd $result;
