@@ -34,7 +34,7 @@ function oneLine(){
 }
 
 #prune remote and local branches
-function clean_branches_fn(){
+function gbc(){
   print "git fetch -p";
   git fetch -p;
   if (($deleteLocal)); then
@@ -44,14 +44,14 @@ function clean_branches_fn(){
 }
 
 #pull
-function pull_fn(){
+function gpl(){
   print "git pull $*";
   git pull $*;
-  clean_branches_fn;
+  gbc;
 }
 
 #pull a branch while not on that branch
-function pull_other_fn(){
+function gpo(){
   if (($#)); then
     print "git fetch origin $1:$1";
     git fetch origin $1:$1;
@@ -59,17 +59,17 @@ function pull_other_fn(){
     print "git fetch origin master:master";
     git fetch origin master:master;
   fi
-  clean_branches_fn;
+  gbc;
 }
 
 #checkout
-function checkout_fn(){
+function gco(){
   print "git checkout $*";
   git checkout $*;
 }
 
 #diff, options available c for cached n for name only, n number for @~n
-function diff_fn(){
+function gd(){
   re='^[0-9]+$'
   ignoreSpace="--ignore-space-change ";
   base="";
@@ -103,7 +103,7 @@ function diff_fn(){
 }
 
 #commit give message as a string
-function commit_fn(){
+function gci(){
   all="-a ";
   if ((!$commitAll)); then
     all="";
@@ -113,7 +113,7 @@ function commit_fn(){
 }
 
 #return to master (or production) and delete branch you were on. Also does a pull after
-function done_fn(){
+function fin(){
   base="master";
   if [ "$1" = "prod" ]; then
     base="$prod";
@@ -122,11 +122,11 @@ function done_fn(){
   git checkout $base;
   print "git branch -D @{-1}";
   git branch -D @{-1};
-  pull_fn;
+  gpl;
 }
 
 #push
-function push_fn(){
+function gps(){
   branch=$(mybranch);
   prefix=":dev_$name-";
   forcePushFlag="";
@@ -152,19 +152,20 @@ function push_fn(){
 }
 
 #stash
-function stash_fn(){
+function gsh(){
   print "git stash $*";
   git stash $*;
 }
 
 #branch
-function branch_fn(){
+function gb(){
   print "git branch --sort=-committerdate -v $*";
   git branch --sort=-committerdate -v $*;
 }
 
 #log
-function log_fancy_fn() {
+function gl() {
+  numRe='^[0-9]+$'
   re='\.\.';
   base="master..@";
   i=$((COLUMNS-53));
@@ -179,16 +180,19 @@ function log_fancy_fn() {
   else if [ "$1" = "master" ]; then
     base="master..@";
     shift 1;
+  else if [[ $1 =~ $numRe ]]; then
+    base="@~$1..";
+    shift 1;
   else if [[ $1 =~ $re ]]; then
     base="";
-  fi fi fi
+  fi fi fi fi
 
   print "git log --graph --date=relative --pretty=format:{tedious format string} $* $base";
   git log "${fancyArgs[@]}" $* $base;
 }
 
 #reset
-function revert_fn(){
+function grs(){
   re='^[0-9]+$';
   hard="";
   if [ "$1" = "h" ]; then
@@ -208,12 +212,12 @@ function revert_fn(){
 }
 
 #reset hard
-function fpull_fn(){
-  revert_fn h $*;
+function grh(){
+  grs h $*;
 }
 
 #commit with amend flag if no message is given previous commit on head is used
-function amend_fn(){
+function ga(){
   all="-a ";
   if ((!$commitAll)); then
     all="";
@@ -228,13 +232,13 @@ function amend_fn(){
 }
 
 #cherry-pick
-function cherry_fn(){
+function gcp(){
   print "git cherry-pick $*";
   git cherry-pick $*;
 }
 
 #rebase
-function rebase_fn(){
+function grb(){
   if [ "$1" = "prod" ]; then
     print "git rebase $prod";
     git rebase $prod;
@@ -248,7 +252,7 @@ function rebase_fn(){
 }
 
 # create a branch off master (or production) regardless of the branch you're on
-function start_fn(){
+function start(){
   base="master";
   if [ "$1" = "prod" ]; then
     base="$prod";
@@ -262,13 +266,13 @@ function start_fn(){
 }
 
 #merge
-function merge_fn(){
+function gm(){
   print "git merge $* --no-edit";
   git merge $* --no-edit;
 }
 
 #add git add . by default
-function add_fn(){
+function gad(){
   if (($#)); then
     print "git add $*";
     git add $*;
@@ -292,41 +296,44 @@ function edit_fn(){
   fi
 }
 
-alias ga=amend_fn
-alias gad=add_fn
-alias gb=branch_fn
-alias gbc=clean_branches_fn
+function goto_fn(){
+  if [ ! -d $devDir ]; then
+    echo "$devDir does not exist. Type 'config' and set devDir to your dev directory";
+    return 0;
+  fi
+  i=$1;
+  shift 1;
+  if [ $(echo $devDir | awk -F / '{print tolower($NF)}') = "$1" ]; then
+    cd $devDir;
+    return 1;
+  fi
+  result=$(find $devDir -mindepth $i -maxdepth $i -type d -iname $*);
+  if [ -z $result ]; then
+    if [ $i -gt $maxSearchDepth ]; then
+      echo "Could not find directory $1 within max search depth $maxSearchDepth."
+    else
+      go $(($i+1)) $*;
+    fi
+  else
+    cd $result;
+  fi
+}
+
 alias gbu='oneLine git branch --unset-upstream'
-alias gci=commit_fn
 alias gcl='oneLine git clean -fd;'
-alias gco=checkout_fn
-alias gcp=cherry_fn
 alias gca='oneLine git cherry-pick --abort'
 alias gcc='oneLine git cherry-pick --continue'
-alias gd=diff_fn
-alias gl=log_fancy_fn
-alias gpl=pull_fn
-alias gpo=pull_other_fn
-alias gps=push_fn
-alias grb=rebase_fn
 alias gra='oneLine git rebase --abort'
 alias grc='oneLine git rebase --continue'
-alias grh=fpull_fn
-alias grs=revert_fn
-alias gsh=stash_fn
 alias gst='oneLine git status --short'
-alias gm=merge_fn
 alias gma='oneLine git merge --abort'
 alias gmc='oneLine git merge --continue'
+
 alias master='oneLine git checkout master'
 alias mybranch='git rev-parse --abbrev-ref HEAD;'
 alias prod='oneLine git checkout $prod'
 
-alias finish=done_fn
-alias web='cd /c/Development/Storm/code/client/DeltekNavigator/Web/'
-alias storm='cd /c/Development/Storm/'
-alias src='cd /c/Development/Storm/code/client/DeltekNavigator/Web/src/'
-alias start=start_fn
+alias go='goto_fn 1'
 alias edit='edit_fn ~/.bash_profile'
 alias config='edit_fn ~/.bash_profile_config'
 alias bp='. ~/.bash_profile'
