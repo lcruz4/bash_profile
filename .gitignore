@@ -2,5 +2,4 @@
 *
 # except for .gitignore .bash_profile files
 !.gitignore
-!.bash_profile
-!.bash_profile_config
+!.bash_profile_*
