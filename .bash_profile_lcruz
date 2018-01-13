@@ -308,7 +308,7 @@ function goto_fn(){
   fi
   i=$1;
   shift 1;
-  if [ $(echo $devDir | awk -F / '{print tolower($NF)}') = "$1" ]; then
+  if [[ $devDir != "/" && $(echo $devDir | awk -F / '{print tolower($NF)}') = "$1" ]]; then
     cd $devDir;
     return 1;
   fi
