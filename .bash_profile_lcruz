@@ -288,10 +288,16 @@ func() {
 }
 
 function edit_fn(){
+  file=$1;
+  shift 1;
+
+  if (($#)); then
+    file=$file"_"$1;
+  fi
   if command -v code > /dev/null; then
-    code $1;
+    code $file;
   else
-    "${EDITOR:-vim}" $1;
+    "${EDITOR:-vim}" $file;
   fi
 }
 
@@ -333,8 +339,8 @@ alias mybranch='git rev-parse --abbrev-ref HEAD;'
 alias prod='oneLine git checkout $prod'
 
 alias go='goto_fn 1'
-alias edit='edit_fn ~/.bash_profile'
-alias config='edit_fn ~/.bash_profile_config'
+alias edit='edit_fn ~/.bash_profile $*'
+alias config='edit_fn ~/.bash_profile config'
 alias bp='. ~/.bash_profile'
 
 complete -F func gco
