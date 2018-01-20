@@ -293,10 +293,13 @@ function edit_fn(){
 
   if (($#)); then
     file=$file"_"$1;
+    shift 1;
   fi
   if command -v code > /dev/null; then
+    print "code $file";
     code $file;
   else
+    print "${EDITOR:-vim} $file";
     "${EDITOR:-vim}" $file;
   fi
 }
@@ -309,6 +312,7 @@ function goto_fn(){
   i=$1;
   shift 1;
   if [[ $devDir != "/" && $(echo $devDir | awk -F / '{print tolower($NF)}') = "$1" ]]; then
+    print "cd $devDir";
     cd $devDir;
     return 1;
   fi
@@ -320,6 +324,7 @@ function goto_fn(){
       goto_fn $(($i+1)) $*;
     fi
   else
+    print "cd $result";
     cd $result;
   fi
 }
