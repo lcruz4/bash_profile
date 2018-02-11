@@ -1,4 +1,10 @@
-# bash_profile
+1. [Bash Profile](#bash-profile)
+2. [Installation Instructions](#installation-instructions)
+3. [More about this project](#more-about-this-project)
+4. [Config](#config)
+5. [Commands](#commands)
+
+# Bash Profile
 Bash profile with shortcuts for common git commands
 
 This project is built such that it won't mess with your bash_profile if you don't want to overwrite it, and you will still be able to add code to your bash_profile without messing with the project. You will also be able to pull updates without messing with your code in .bash_profile. This project also prints out every git command it is running so you don't have to worry about having to look at the code to see what is actually being done.
@@ -75,4 +81,130 @@ If you want to take advantage of some commands that can assume either the master
 If you want to use the go command set your devDir. I also plan on adding code to immediately change to your dev directory when sourcing your bash_profile (and maybe running a git gc --auto if it's a git directory) in the future.
 
 # Commands
-UNDER CONSTRUCTION
+Note that many commands will pass along any extra arguments you give to the git command it runs. For example gd is the git diff command, if you want to get filenames only then `gd --name-only` will work.
+### gpl
+This is the `git pull` command. It also calls gbc.
+### gpo
+Stands for git pull other. It will update a branch you're not on without going to that branch. I.e. if you're in a feature branch `gpo production` will pull updates from origin/production into production. If no branch is provided master is assumed. So gpo is very useful if you want to update and don't want to go to master.
+### gbc
+This is not meant to be called directly because gpl and gpo both call it.
+
+This was supposed to stand for `git gc` (garbage collect), but it doesn't do that anymore. I may redo this one. For now it does a `git fetch -p` so it prunes your old remote branches. If deleteLocal is on it will check your local branches and if any are gone (the upstream branch has been deleted), it will delete the local branch as well.
+### gst
+Runs `git status --short`. You may not be used to the short output, but it's clearly superior.
+### gco
+This is the `git checkout` command.
+### gd
+This is the `git diff` command.
+
+It will ignore whitespace depending on the ignoreSpaceChanges (on by default).
+
+This command will pipe output to less so that output doesn't fill up your console unless the n flag is given.
+
+This supports a few options.
+* If a number is given the diff will run against that commits back. This is useful if you want to see git diff after you've commited, simply `gd 1`. If you got multiple commits you want to include `gd 2` and so on.
+* `c` this option adds the --cached flag in case you've staged your changes already.
+* `n` this option adds the --name-only flag, and prevents output to less (since this usually produces a short output).
+### gl
+This is the `git log` command.
+
+If logCompareMaster is on (off by default) git log will compare against master. If you don't know why this is useful I suggest you turn it on, as this extremely useful for git beginners and this is one of the commands along with gst that you should be running all the time.
+
+The format for this command is real fancy. It's similary to oneline but with more information, and it adjusts to the size of your window so it doesn't wrap (if the graph is huge it may wrap).
+
+This supports a few options.
+* `prod` compare agains your production branch instead of master.
+* `master` even if you have logCompareMaster off you can give this option to do it anyway.
+* If a number is given as an argument it will do the same thing gd does. It will compare with that many commits back. So `gl 4` will show you the last 4 commits.
+* If your argument has a '..' in it then it will override comparing against master and just pass your comparison argument as it is. If you don't know this syntax I recommend that you learn it. It is very powerful.
+### gad
+This is the `git add` command.
+
+If no arguments are given it will run `git add .` (adds everything).
+### gci
+This is the `git commit` command.
+
+The -a flag is added if commitAll is on (default).
+
+Note this command requires a message. So make sure to call like this `gci "commit message"`.
+### ga
+Stands for git commit --amend. If commitAll is on (default) the -a flag will be used. If a message is provided (`ga "message"`) then the message of the commit will be overwritten. Otherwise if no message is given (`ga`) the existing message will be reused.
+### gps
+This is the `git push` command.
+
+The -u flag is used to set-upstream (this is needed for the deleteLocal setting to work).
+
+If forcePush is on (off by default) the -f flag is added. This is useful if you ever amend or rebase, because if git doesn't agree that your changes are a simple update it will not update your branch unless you add the -f flag. Think when programs asks 'are you sure you want to overwrite?', this setting tells it yes always.
+
+If branchPrefix (off by default) is on then your branch name will be prepended with dev_yourname- so that your remote branch will be something like dev_bob-some-feat. If you give the prod argument it will prepend prod_yourname- instead.
+If you ever give an argument that contains a ':' it will use that instead. So this is a way to overide branchPrefix, and also it allows you to delete branches if it's on.
+### edit
+With no args this will open your bash_profile file in your editor. If it opens it in vim (and you don't want it to). Add `export EDITOR='yourEditor'` to the end of your bash_profile and run bp.
+If you want to see the code for all the commands mentioned here run `edit lcruz`
+### config
+Same as edit but for the bash_profile_config
+### bp
+Stands for bash profile. This command sources your bash profile so you don't have to close and restart your bash when making changes.
+### start
+This command will create a new branch off of master (you don't need to be on master) and go to the new branch.
+
+If you give the prod argument it will create one off of your production branch.
+### fin
+Stands for finished. This command will checkout master then delete the last branch you were on. Then it will run gpl to update master. You can call `fin prod` if you want it to go to and update your production branch instead of master.
+### gb
+This is the `git branch` command.
+### grb
+This is the `git rebase` command.
+* If prod is given as an argument it will rebase against your production branch.
+* If anything other than prod is given it will rebase against that.
+* If no argument is given it will rebase against master.
+### gra & grc
+The grb command can cause a merge conflict.
+
+Use gra to abort and go back to the state before the conflict.
+
+Use grc to continue with the rebase.
+### gm
+This is the `git merge` command.
+
+It uses the --no-edit flag.
+### gma & gmc
+The gm command can cause a merge conflict.
+
+Use gma to abort and go back to the state before the conflict.
+
+Use gmc to continue after adding (gad) your resolution to the conflicts.
+### gcp
+This is the `git cherry-pick` command.
+### gca & gcc
+The gcp command can cause a merge conflict.
+
+Use gca to abort and go back to the state before the conflict.
+
+Use gcc to continue after adding (gad) your resolution to the conflicts.
+### grs
+This is the `git reset` command.
+
+If you give a number as an argument it does the same thing gd and gl do. It will reset to that many commits back. For example if I have 4 commits in my feature branch and I want to do a de facto squash, I can just run grs 4 followed by a gci "new commit message".
+
+If a number is not given it will just reset to whatever you give it
+### grh
+This is like grs but it will add the --hard flag. Be careful! If you run git reset --hard when you have unstaged changes you will not be able to get them back.
+### gsh
+This is the `git stash` command.
+### gbu
+This command unsets your upstream branch.
+
+Note deleteLocal doesn't work if your branches don't have an upstream.
+### gcl
+Runs `git clean -fd`. Useful if you want to undo untracked changes.
+### master
+This is a shortcut for `gco master`.
+### prod
+This is a shortcut for `gco` with your production branch.
+### go
+Experimental.
+
+Will try to cd to a directory you provide.
+
+It starts searching in your devDir and does a breadth first search using multiple greps. It will give up after maxSearchDepth levels. If two dirs with the same name exist in the same level it will crap out, sorry.
