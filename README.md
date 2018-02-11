@@ -39,6 +39,18 @@ Your .bash_profile now sources .bash_profile_lcruz. This is where all of my code
 If you have a production branch set in the config some commands will take 'prod' as the first argument to indicate that you want to perform that action in the context of your production branch not master.
 
 # Config
+* [echoOn](#echoon)
+* [deleteLocal](#deletelocal)
+* [ignoreSpaceChanges](#ignorespacechanges)
+* [commitAll](#commitall)
+* [logCompareMaster](#logcomparemaster)
+* [branchPrefix](#branchprefix)
+* [forcePush](#forcepush)
+* [maxSearchDepth](#maxsearchdepth)
+* [name](#name)
+* [prod](#prod)
+* [devDir](#devdir)
+
 This is the default config
 ```
 #1 is true, 0 is false
@@ -81,6 +93,38 @@ If you want to take advantage of some commands that can assume either the master
 If you want to use the go command set your devDir. I also plan on adding code to immediately change to your dev directory when sourcing your bash_profile (and maybe running a git gc --auto if it's a git directory) in the future.
 
 # Commands
+* [gpl](#gpl)
+* [gpo](#gpo)
+* [gbc](#gbc)
+* [gst](#gst)
+* [gco](#gco)
+* [gd](#gd)
+* [gl](#gl)
+* [gad](#gad)
+* [gci](#gci)
+* [ga](#ga)
+* [gps](#gps)
+* [edit](#edit)
+* [config](#config)
+* [bp](#bp)
+* [start](#start)
+* [fin](#fin)
+* [gb](#gb)
+* [grb](#grb)
+* [gra grc](#gra-grc)
+* [gm](#gm)
+* [gma gmc](#gma-gmc)
+* [gcp](#gcp)
+* [gca gcc](#gca-gcc)
+* [grs](#grs)
+* [grh](#grh)
+* [gsh](#gsh)
+* [gbu](#gbu)
+* [gcl](#gcl)
+* [master](#master)
+* [prod](#prod)
+* [go](#go)
+
 Note that many commands will pass along any extra arguments you give to the git command it runs. For example gd is the git diff command, if you want to get filenames only then `gd --name-only` will work.
 ### gpl
 This is the `git pull` command. It also calls gbc.
@@ -158,7 +202,7 @@ This is the `git rebase` command.
 * If prod is given as an argument it will rebase against your production branch.
 * If anything other than prod is given it will rebase against that.
 * If no argument is given it will rebase against master.
-### gra & grc
+### gra grc
 The grb command can cause a merge conflict.
 
 Use gra to abort and go back to the state before the conflict.
@@ -168,7 +212,7 @@ Use grc to continue with the rebase.
 This is the `git merge` command.
 
 It uses the --no-edit flag.
-### gma & gmc
+### gma gmc
 The gm command can cause a merge conflict.
 
 Use gma to abort and go back to the state before the conflict.
@@ -176,7 +220,7 @@ Use gma to abort and go back to the state before the conflict.
 Use gmc to continue after adding (gad) your resolution to the conflicts.
 ### gcp
 This is the `git cherry-pick` command.
-### gca & gcc
+### gca gcc
 The gcp command can cause a merge conflict.
 
 Use gca to abort and go back to the state before the conflict.
