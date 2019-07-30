@@ -180,8 +180,10 @@ The -u flag is used to set-upstream (this is needed for the deleteLocal setting 
 
 If forcePush is on (off by default) the -f flag is added. This is useful if you ever amend or rebase, because if git doesn't agree that your changes are a simple update it will not update your branch unless you add the -f flag. Think when programs asks 'are you sure you want to overwrite?', this setting tells it yes always.
 
-If branchPrefix (off by default) is on then your branch name will be prepended with dev_yourname- so that your remote branch will be something like dev_bob-some-feat. If you give the prod argument it will prepend prod_yourname- instead.
+If branchPrefix (off by default) is on then your branch name will be prepended with dev_yourname- so that your remote branch will be something like dev_bob-some-feat. If you give the prod argument it will prepend prod_yourname- (see update) instead.
 If you ever give an argument that contains a ':' it will use that instead. So this is a way to overide branchPrefix, and also it allows you to delete branches if it's on.
+
+Update: instead of accepting prod as a parameter this command now takes any alphanumeric argument (without a : in it) and uses that as the prefix. I.e. if you want to do gps feat it will prepend feat_yourname-. This still only applies if branchPrefix is on and the default is still dev.
 ### edit
 With no args this will open your bash_profile file in your editor. If it opens it in vim (and you don't want it to). Add `export EDITOR='yourEditor'` to the end of your bash_profile and run bp.
 If you want to see the code for all the commands mentioned here run `edit lcruz`
