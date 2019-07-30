@@ -133,8 +133,8 @@ function gps(){
   re=":";
 
   if (($branchPrefix)); then
-    if [ "$1" = "prod" ]; then
-      prefix=":prod_$name-";
+    if [[ "$1" =~ ^[[:alnum:]]+$ ]]; then
+      prefix=":$1_$name-";
       shift 1;
     fi
     base=$branch$prefix$branch
@@ -142,7 +142,7 @@ function gps(){
   if (($forcePush)); then
     forcePushFlag="-f ";
   fi
-  if [[ $1 =~ $re ]]; then
+  if [[ "$1" =~ $re ]]; then
     base=$1;
     shift 1;
   fi
@@ -183,7 +183,8 @@ function gl() {
     base="@~$1..";
     shift 1;
   else if [[ $1 =~ $re ]]; then
-    base="";
+    base="$1";
+    shift 1;
   fi fi fi fi
 
   print "git log --graph --date=relative --pretty=format:{tedious format string} $* $base";
