@@ -114,15 +114,9 @@ function gci(){
 #return to master (or production) and delete branch you were on. Also does a pull after
 function fin(){
   base="master";
-  re='^releases/production[0-9]+$';
-  branch=$(mybranch);
 
-  if [[ $branch =~ $re || $branch = $base ]]; then
-    base=$branch;
-  fi
-
-  if (($2)); then
-    base="$2";
+  if (($1)); then
+    base="$1";
   fi
 
   print "git checkout $base";
