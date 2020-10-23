@@ -114,9 +114,17 @@ function gci(){
 #return to master (or production) and delete branch you were on. Also does a pull after
 function fin(){
   base="master";
-  if [ "$1" = "prod" ]; then
-    base="$prod";
+  re='^releases/production[0-9]+$';
+  branch=$(mybranch);
+
+  if [[ $branch =~ $re || $branch = $base ]]; then
+    base=$branch;
   fi
+
+  if (($2)); then
+    base="$2";
+  fi
+
   print "git checkout $base";
   git checkout $base;
   print "git branch -D @{-1}";
@@ -254,9 +262,15 @@ function grb(){
 # create a branch off master (or production) regardless of the branch you're on
 function start(){
   base="master";
-  if [ "$1" = "prod" ]; then
-    base="$prod";
-    shift 1;
+  re='^releases/production[0-9]+$';
+  branch=$(mybranch);
+
+  if [[ $branch =~ $re || $branch = $base ]]; then
+    base=$branch;
+  fi
+
+  if (($2)); then
+    base="$2";
   fi
 
   print "git branch $1 $base";
@@ -353,3 +367,5 @@ complete -F func gco
 complete -F func gb -D
 complete -F func gpo
 complete -F func gl
+complete -F func start
+complete -F func fin
