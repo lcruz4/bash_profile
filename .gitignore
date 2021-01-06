@@ -3,3 +3,4 @@
 # except for .gitignore .bash_profile files
 !.gitignore
 !.bash_profile_*
+!.git-prompt.sh
