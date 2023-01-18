@@ -55,8 +55,8 @@ function gpo(){
     print "git fetch origin $1:$1";
     git fetch origin $1:$1;
   else
-    print "git fetch origin master:master";
-    git fetch origin master:master;
+    print "git fetch origin main:main";
+    git fetch origin main:main;
   fi
   gbc;
 }
@@ -111,9 +111,9 @@ function gci(){
   git commit $all-m "$1";
 }
 
-#return to master (or production) and delete branch you were on. Also does a pull after
+#return to main (or production) and delete branch you were on. Also does a pull after
 function fin(){
-  base="master";
+  base="main";
   if [ "$1" = "prod" ]; then
     base="$prod";
   fi
@@ -166,7 +166,7 @@ function gb(){
 function gl() {
   numRe='^[0-9]+$'
   re='\.\.';
-  base="master..@";
+  base="main..@";
   i=$((COLUMNS-53));
   fancyArgs=(--graph --date=relative --pretty=format:"%<|(20,trunc)%C(yellow)%h %C(bold)%Cgreen%<(15,trunc)%an %Creset%C(magenta)%<(15,trunc)%ad %Creset%<($i,trunc)%s");
   if ((!$logCompareMaster)); then
@@ -176,8 +176,8 @@ function gl() {
   if [ "$1" = "prod" ]; then
     base="$prod..@";
     shift 1;
-  else if [ "$1" = "master" ]; then
-    base="master..@";
+  else if [ "$1" = "main" ]; then
+    base="main..@";
     shift 1;
   else if [[ $1 =~ $numRe ]]; then
     base="@~$1..";
@@ -246,14 +246,14 @@ function grb(){
     print "git rebase $*";
     git rebase $*;
   else
-    print "git rebase master";
-    git rebase master;
+    print "git rebase main";
+    git rebase main;
   fi fi
 }
 
-# create a branch off master (or production) regardless of the branch you're on
+# create a branch off main (or production) regardless of the branch you're on
 function start(){
-  base="master";
+  base="main";
   if [ "$1" = "prod" ]; then
     base="$prod";
     shift 1;
@@ -340,7 +340,7 @@ alias gst='oneLine git status --short'
 alias gma='oneLine git merge --abort'
 alias gmc='oneLine git merge --continue'
 
-alias master='oneLine git checkout master'
+alias main='oneLine git checkout main'
 alias mybranch='git rev-parse --abbrev-ref HEAD;'
 alias prod='oneLine git checkout $prod'
 
