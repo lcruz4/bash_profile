@@ -66,7 +66,7 @@ This is the default config
 #maxSearchDepth=10; #how many directories in should go search before giving up
 
 name="luis"; #used in push commands if branchPrefix=1;
-prod="production11"; #variable that stores name of production branch
+main="main"; #variable that stores name of main branch
 devDir="/c/dev"; #dev directory for used for go command (don't add / to end)
 ```
 ### echoOn
@@ -87,8 +87,8 @@ This setting is off by default. The push alias will include the -f flag by defau
 The go command (sorry go devs) will take you to a directory that lives within your devDir. This command uses a grep and this setting indicates how far it should search before giving up. This setting is still experimental so you may run into issues, specially if you have multiple directories in the same depth level.
 ### name
 The push alias gps will prepend dev_(name)- before a branch if you have branchPrefix turned on. This setting is how you can edit your name.
-### prod
-If you want to take advantage of some commands that can assume either the master branch or a production branch set this setting to indicate which branch is your production branch. Some settings such as gl will take prod as their first argument. Therefor gl prod will give you a log comparing your head to your production branch.
+### main
+This is the name of your main branch.
 ### devDir
 If you want to use the go command set your devDir. I also plan on adding code to immediately change to your dev directory when sourcing your bash_profile (and maybe running a git gc --auto if it's a git directory) in the future.
 
@@ -246,8 +246,6 @@ Note deleteLocal doesn't work if your branches don't have an upstream.
 Runs `git clean -fd`. Useful if you want to undo untracked changes.
 ### master
 This is a shortcut for `gco master`.
-### prod
-This is a shortcut for `gco` with your production branch.
 ### go
 Experimental.
 
