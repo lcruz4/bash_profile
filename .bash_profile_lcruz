@@ -1,332 +1,332 @@
 #!/bin/bash
-echoOn=1;
-name="";
-main="main";
-deleteLocal=1;
-ignoreSpaceChanges=1;
-commitAll=1;
-branchPrefix=0;
-logCompareMaster=0;
-forcePush=0;
-devDir="/c/dev";
-maxSearchDepth=10;
+echoOn=1
+name=""
+main="main"
+deleteLocal=1
+ignoreSpaceChanges=1
+commitAll=1
+branchPrefix=0
+logCompareMaster=0
+forcePush=0
+devDir="/c/dev"
+maxSearchDepth=10
 
 if [ -f "${HOME}/.bash_profile_config" ]; then
-  source "${HOME}/.bash_profile_config";
+  source "${HOME}/.bash_profile_config"
 fi
 
 if [ -d .git ]; then
-  git gc --auto;
+  git gc --auto
 fi
 
 #helper to check if echoOn is set
-function print(){
+function print() {
   if (($echoOn)); then
-    echo "> $1";
+    echo "> $1"
   fi
 }
 
 #helper for one liner aliases
-function oneLine(){
-  print "$*";
-  $*;
+function oneLine() {
+  print "$*"
+  $*
 }
 
 #prune remote and local branches
-function gbc(){
-  print "git fetch -p";
-  git fetch -p;
+function gbc() {
+  print "git fetch -p"
+  git fetch -p
   if (($deleteLocal)); then
-    print "delete old local branches";
-    git branch -v | grep gone | cut -d \  -f 3 | xargs -n 1 git branch -D 2> /dev/null;
+    print "delete old local branches"
+    git branch -v | grep gone | cut -d \  -f 3 | xargs -n 1 git branch -D 2>/dev/null
   fi
 }
 
 #pull
-function gpl(){
-  print "git pull $*";
-  git pull $*;
-  gbc;
+function gpl() {
+  print "git pull $*"
+  git pull $*
+  gbc
 }
 
 #pull a branch while not on that branch
-function gpo(){
+function gpo() {
   if (($#)); then
-    print "git fetch origin $1:$1";
-    git fetch origin $1:$1;
+    print "git fetch origin $1:$1"
+    git fetch origin $1:$1
   else
-    print "git fetch origin $main:$main";
-    git fetch origin $main:$main;
+    print "git fetch origin $main:$main"
+    git fetch origin $main:$main
   fi
-  gbc;
+  gbc
 }
 
 #checkout
-function gco(){
-  print "git checkout $*";
-  git checkout $*;
+function gco() {
+  print "git checkout $*"
+  git checkout $*
 }
 
 #diff, options available c for cached n for name only, n number for @~n
-function gd(){
+function gd() {
   re='^[0-9]+$'
-  ignoreSpace="--ignore-space-change ";
-  base="";
-  cached="";
-  nameOnly="";
-  redirect=1;
+  ignoreSpace="--ignore-space-change "
+  base=""
+  cached=""
+  nameOnly=""
+  redirect=1
   if ((!$ignoreSpaceChanges)); then
-    ignoreSpace="";
+    ignoreSpace=""
   fi
   if [[ $1 =~ $re ]]; then
-    base="@~$1 ";
-    shift 1;
+    base="@~$1 "
+    shift 1
   fi
   if [ "$1" = "c" ]; then
-    shift 1;
-    cached="--cached ";
+    shift 1
+    cached="--cached "
   fi
   if [ "$1" = "n" ]; then
-    shift 1;
-    nameOnly="--name-only ";
-    redirect=0;
+    shift 1
+    nameOnly="--name-only "
+    redirect=0
   fi
 
   if (($redirect)); then
-    print "git diff --color $cached$nameOnly$ignoreSpace$base$* | less -r";
-    git diff --color $cached$nameOnly$ignoreSpace$base$* | less -r;
+    print "git diff --color $cached$nameOnly$ignoreSpace$base$* | less -r"
+    git diff --color $cached$nameOnly$ignoreSpace$base$* | less -r
   else
-    print "git diff --color $cached$nameOnly$ignoreSpace$base$*";
-    git diff --color $cached$nameOnly$ignoreSpace$base$*;
+    print "git diff --color $cached$nameOnly$ignoreSpace$base$*"
+    git diff --color $cached$nameOnly$ignoreSpace$base$*
   fi
 }
 
 #commit give message as a string
-function gci(){
-  all="-a ";
+function gci() {
+  all="-a "
   if ((!$commitAll)); then
-    all="";
+    all=""
   fi
-  print "git commit $all-m \"$1\"";
-  git commit $all-m "$1";
+  print "git commit $all-m \"$1\""
+  git commit $all-m "$1"
 }
 
 #return to main (or production) and delete branch you were on. Also does a pull after
-function fin(){
-  base="$main";
+function fin() {
+  base="$main"
   if [ "$1" = "prod" ]; then
-    base="$prod";
+    base="$prod"
   fi
-  print "git checkout $base";
-  git checkout $base;
-  print "git branch -D @{-1}";
-  git branch -D @{-1};
-  gpl;
+  print "git checkout $base"
+  git checkout $base
+  print "git branch -D @{-1}"
+  git branch -D @{-1}
+  gpl
 }
 
 #push
-function gps(){
-  branch=$(mybranch);
-  prefix=":dev_$name-";
-  forcePushFlag="";
-  base=$branch;
-  re=":";
+function gps() {
+  branch=$(mybranch)
+  prefix=":dev_$name-"
+  forcePushFlag=""
+  base=$branch
+  re=":"
 
   if (($branchPrefix)); then
     if [[ "$1" =~ ^[[:alnum:]]+$ ]]; then
-      prefix=":$1_$name-";
-      shift 1;
+      prefix=":$1_$name-"
+      shift 1
     fi
     base=$branch$prefix$branch
   fi
   if (($forcePush)); then
-    forcePushFlag="-f ";
+    forcePushFlag="-f "
   fi
   if [[ "$1" =~ $re ]]; then
-    base=$1;
-    shift 1;
+    base=$1
+    shift 1
   fi
-  print "git push $forcePushFlag-u $* origin $base";
-  git push $forcePushFlag-u $* origin $base;
+  print "git push $forcePushFlag-u $* origin $base"
+  git push $forcePushFlag-u $* origin $base
 }
 
 #stash
-function gsh(){
-  print "git stash $*";
-  git stash $*;
+function gsh() {
+  print "git stash $*"
+  git stash $*
 }
 
 #branch
-function gb(){
-  print "git branch --sort=-committerdate -v $*";
-  git branch --sort=-committerdate -v $*;
+function gb() {
+  print "git branch --sort=-committerdate -v $*"
+  git branch --sort=-committerdate -v $*
 }
 
 #log
 function gl() {
   numRe='^[0-9]+$'
-  re='\.\.';
-  base="$main..@";
-  i=$((COLUMNS-53));
-  fancyArgs=(--graph --date=relative --pretty=format:"%<|(20,trunc)%C(yellow)%h %C(bold)%Cgreen%<(15,trunc)%an %Creset%C(magenta)%<(15,trunc)%ad %Creset%<($i,trunc)%s");
+  re='\.\.'
+  base="$main..@"
+  i=$((COLUMNS - 53))
+  fancyArgs=(--graph --date=relative --pretty=format:"%<|(20,trunc)%C(yellow)%h %C(bold)%Cgreen%<(15,trunc)%an %Creset%C(magenta)%<(15,trunc)%ad %Creset%<($i,trunc)%s")
   if ((!$logCompareMaster)); then
-    base="";
+    base=""
   fi
 
   if [ "$1" = "prod" ]; then
-    base="$prod..@";
-    shift 1;
+    base="$prod..@"
+    shift 1
   else if [ "$1" = "$main" ]; then
-    base="$main..@";
-    shift 1;
+    base="$main..@"
+    shift 1
   else if [[ $1 =~ $numRe ]]; then
-    base="@~$1..";
-    shift 1;
+    base="@~$1.."
+    shift 1
   else if [[ $1 =~ $re ]]; then
-    base="$1";
-    shift 1;
-  fi fi fi fi
+    base="$1"
+    shift 1
+  fi; fi; fi; fi
 
-  print "git log --graph --date=relative --pretty=format:{tedious format string} $* $base";
-  git log "${fancyArgs[@]}" $* $base;
+  print "git log --graph --date=relative --pretty=format:{tedious format string} $* $base"
+  git log "${fancyArgs[@]}" $* $base
 }
 
 #reset
-function grs(){
-  re='^[0-9]+$';
-  hard="";
+function grs() {
+  re='^[0-9]+$'
+  hard=""
   if [ "$1" = "h" ]; then
-    hard="--hard ";
-    shift 1;
+    hard="--hard "
+    shift 1
   fi
 
   if [[ $1 =~ $re ]]; then
-    num=$1;
-    shift 1;
-    print "git reset $hard$* @~$num";
-    git reset $hard$* @~$num;
+    num=$1
+    shift 1
+    print "git reset $hard$* @~$num"
+    git reset $hard$* @~$num
   else
-    print "git reset $hard$*";
-    git reset $hard$*;
+    print "git reset $hard$*"
+    git reset $hard$*
   fi
 }
 
 #reset hard
-function grh(){
-  grs h $*;
+function grh() {
+  grs h $*
 }
 
 #commit with amend flag if no message is given previous commit on head is used
-function ga(){
-  all="-a ";
+function ga() {
+  all="-a "
   if ((!$commitAll)); then
-    all="";
+    all=""
   fi
   if (($#)); then
     print "git commit --amend $all-m \"$1\""
-    git commit --amend $all-m "$1";
+    git commit --amend $all-m "$1"
   else
-    print "git commit --amend $all-C @";
-    git commit --amend $all-C @;
+    print "git commit --amend $all-C @"
+    git commit --amend $all-C @
   fi
 }
 
 #cherry-pick
-function gcp(){
-  print "git cherry-pick $*";
-  git cherry-pick $*;
+function gcp() {
+  print "git cherry-pick $*"
+  git cherry-pick $*
 }
 
 #rebase
-function grb(){
+function grb() {
   if [ "$1" = "prod" ]; then
-    print "git rebase $prod";
-    git rebase $prod;
+    print "git rebase $prod"
+    git rebase $prod
   else if (($#)); then
-    print "git rebase $*";
-    git rebase $*;
+    print "git rebase $*"
+    git rebase $*
   else
-    print "git rebase $main";
-    git rebase $main;
-  fi fi
+    print "git rebase $main"
+    git rebase $main
+  fi; fi
 }
 
 # create a branch off main (or production) regardless of the branch you're on
-function start(){
-  base="$main";
+function start() {
+  base="$main"
   if [ "$1" = "prod" ]; then
-    base="$prod";
-    shift 1;
+    base="$prod"
+    shift 1
   fi
 
-  print "git branch $1 $base";
-  git branch $1 $base;
-  print "git checkout $1";
-  git checkout $1;
+  print "git branch $1 $base"
+  git branch $1 $base
+  print "git checkout $1"
+  git checkout $1
 }
 
 #merge
-function gm(){
-  print "git merge $* --no-edit";
-  git merge $* --no-edit;
+function gm() {
+  print "git merge $* --no-edit"
+  git merge $* --no-edit
 }
 
 #add git add . by default
-function gad(){
+function gad() {
   if (($#)); then
-    print "git add $*";
-    git add $*;
+    print "git add $*"
+    git add $*
   else
-    print "git add .";
-    git add .;
+    print "git add ."
+    git add .
   fi
 }
 
 #completion func for branches. Only uses local branches, excludes current branch
 func() {
   local cur=${COMP_WORDS[COMP_CWORD]}
-  COMPREPLY=( $(compgen -W "$(git branch | grep -v \*)" -- $cur) )
+  COMPREPLY=($(compgen -W "$(git branch | grep -v \*)" -- $cur))
 }
 
-function edit_fn(){
-  file=$1;
-  shift 1;
+function edit_fn() {
+  file=$1
+  shift 1
 
   if (($#)); then
-    file=$file"_"$1;
-    shift 1;
+    file=$file"_"$1
+    shift 1
   fi
-  if command -v code > /dev/null; then
-    print "code $file";
-    code $file;
+  if command -v code >/dev/null; then
+    print "code $file"
+    code $file
   else
-    print "${EDITOR:-vim} $file";
-    "${EDITOR:-vim}" $file;
+    print "${EDITOR:-vim} $file"
+    "${EDITOR:-vim}" $file
   fi
 }
 
-function goto_fn(){
+function goto_fn() {
   if [ ! -d $devDir ]; then
-    echo "$devDir does not exist. Type 'config' and set devDir to your dev directory";
-    return 0;
+    echo "$devDir does not exist. Type 'config' and set devDir to your dev directory"
+    return 0
   fi
-  i=$1;
-  shift 1;
+  i=$1
+  shift 1
   if [[ $devDir != "/" && $(echo $devDir | awk -F / '{print tolower($NF)}') = "$1" ]]; then
-    print "cd $devDir";
-    cd $devDir;
-    return 1;
+    print "cd $devDir"
+    cd $devDir
+    return 1
   fi
-  result=$(find $devDir -mindepth $i -maxdepth $i -type d -iname $*);
+  result=$(find $devDir -mindepth $i -maxdepth $i -type d -iname $*)
   if [ -z $result ]; then
     if [ $i -gt $maxSearchDepth ]; then
       echo "Could not find directory $1 within max search depth $maxSearchDepth."
     else
-      goto_fn $(($i+1)) $*;
+      goto_fn $(($i + 1)) $*
     fi
   else
-    print "cd $result";
-    cd $result;
+    print "cd $result"
+    cd $result
   fi
 }
 
@@ -343,7 +343,7 @@ alias gmc='oneLine git merge --continue'
 alias mybranch='git rev-parse --abbrev-ref HEAD;'
 alias prod='oneLine git checkout $prod'
 
-alias go='goto_fn 1'
+alias goto='goto_fn 1'
 alias edit='edit_fn ~/.bash_profile $*'
 alias config='edit_fn ~/.bash_profile config'
 alias bp='. ~/.bash_profile'
